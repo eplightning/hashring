@@ -113,12 +113,18 @@ func (h *HashRing) GetNode(stringKey string) (node string, ok bool) {
 	return h.ring[h.sortedKeys[pos]], true
 }
 
+func (h *HashRing) GetNodeFromPos(pos int) string {
+	return h.ring[h.sortedKeys[pos]]
+}
+
 func (h *HashRing) GetNodePos(stringKey string) (pos int, ok bool) {
+	return h.GetNodePosFromKey(h.GenKey(stringKey))
+}
+
+func (h *HashRing) GetNodePosFromKey(key HashKey) (pos int, ok bool) {
 	if len(h.ring) == 0 {
 		return 0, false
 	}
-
-	key := h.GenKey(stringKey)
 
 	nodes := h.sortedKeys
 	pos = sort.Search(len(nodes), func(i int) bool { return nodes[i] > key })
@@ -136,12 +142,19 @@ func (h *HashRing) GenKey(key string) HashKey {
 	return hashVal(bKey[0:4])
 }
 
+func (h *HashRing) KeyFromBytes(bKey []byte) HashKey {
+	return hashVal(bKey[0:4])
+}
+
 func (h *HashRing) GetNodes(stringKey string, size int) (nodes []string, ok bool) {
 	pos, ok := h.GetNodePos(stringKey)
 	if !ok {
 		return nil, false
 	}
+	return h.GetNodesFromPos(pos, size)
+}
 
+func (h *HashRing) GetNodesFromPos(pos int, size int) (nodes []string, ok bool) {
 	if size > len(h.nodes) {
 		return nil, false
 	}
